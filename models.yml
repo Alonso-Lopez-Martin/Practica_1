@@ -64,6 +64,7 @@ Asistente:
     - direccion
   admissible_vars:
     - pref_genero
+    - direccion_loc
   unique_indexes:
     - nombre
     - correo_electronico
