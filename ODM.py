@@ -314,20 +314,48 @@ def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://local
         db_name : str
             nombre de la base de datos
     """
-    #TODO
-    # Inicializar base de datos
+    # Conectar a la base de datos MongoDB
+    client = MongoClient(mongodb_uri)
+    db = client[db_name]
 
-    #TODO
-    # Declarar tantas clases modelo colecciones existan en la base de datos
-    # Leer el fichero de definiciones de modelos para obtener las colecciones,
-    # indices y los atributos admitidos y requeridos para cada una de ellas.
-    # Ejemplo de declaracion de modelo para colecion llamada MiModelo
-    scope["MiModelo"] = type("MiModelo", (Model,),{})
-    # La clase se declara en tiempo de ejecucion y queda en scope, que no tiene
-    # por que ser el espacio de nombres global: las pruebas le pasan su propio
-    # diccionario. Por eso se inicializa a traves de scope y no por su nombre,
-    # que ahi todavia no existe.
-    scope["MiModelo"].init_class(db_collection=None, indexes=None, required_vars=None, admissible_vars=None)
+    # Leer el fichero YAML con tus modelos
+    with open(definitions_path, 'r') as file:
+        definitions = yaml.safe_load(file)
+
+    # Crear las clases dinámicamente
+    for model_name, model_info in definitions.items():
+        # Obtener los datos del YAML
+        required_vars = set(model_info.get('required_vars', []))
+        admissible_vars = set(model_info.get('admissible_vars', []))
+
+        #Indices
+        # 1. Preparamos un diccionario vacío para guardar los índices
+        indexes = {}
+        
+        # 2. Si el YAML tiene 'unique_indexes', recorremos la lista y los marcamos como 'unique'
+        if model_info.get('unique_indexes'):
+            for campo in model_info['unique_indexes']:
+                indexes[campo] = 'unique'
+                
+        # 3. Si el YAML tiene 'regular_indexes', recorremos la lista y los marcamos como 'asc'
+        if model_info.get('regular_indexes'):
+            for campo in model_info['regular_indexes']:
+                indexes[campo] = 'asc'
+                
+        # 4. Si el YAML tiene 'location_index', lo marcamos como 'geosphere'
+        if model_info.get('location_index'):
+            indexes[model_info['location_index']] = 'geosphere'
+            
+        # Crear la clase heredando de Model
+        scope[model_name] = type(model_name, (Model,), {})
+        
+        # Inicializar la clase pasándole la colección de Mongo y sus reglas
+        scope[model_name].init_class(
+            db_collection=db[model_name], 
+            indexes=indexes, 
+            required_vars=required_vars, 
+            admissible_vars=admissible_vars
+        )
 
 if __name__ == '__main__':
     
