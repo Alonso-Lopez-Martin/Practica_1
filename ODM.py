@@ -289,17 +289,29 @@ class Model:
         cls._required_vars = required_vars
         cls._admissible_vars = admissible_vars
 
-        elif tipo == 'geosphere':
-                # Índice geoespacial
+
+       # 1. Por seguridad, si no nos pasan índices, ponemos un diccionario vacío
+        if indexes is None:
+            indexes = {}
+            
+        # 2. Recorremos el diccionario de índices que hemos construido antes en initApp
+        for campo, tipo in indexes.items():
+            if tipo == 'unique':
+                # Índice único: asegura que no se repitan valores (ej: el nombre del recinto)[cite: 8]
+                cls._db.create_index(campo, unique=True)
+                
+            elif tipo == 'asc':
+                # Índice normal ascendente para acelerar búsquedas[cite: 8]
+                cls._db.create_index([(campo, pymongo.ASCENDING)])
+                
+            elif tipo == 'geosphere':
+                # Índice geoespacial: se crea sobre el campo terminado en _loc[cite: 9]
                 cls._db.create_index([(f"{campo}_loc", pymongo.GEOSPHERE)])
-                # ¡ESTA LÍNEA ES LA QUE BUSCA EL TEST!
+                
+                # ¡ESTA ES LA LÍNEA QUE ARREGLA TU ERROR! 
+                # Le decimos a la clase cuál es el campo de dirección original
                 cls._location_var = campo
-        # TODO
-        # Recorrer indexes y crear cada índice segun su tipo: 'unique', 'asc'
-        # y 'geosphere'. Comparar el tipo por igualdad, no con el operador 'in'.
-        # Ojo con el índice geoespacial: save() guarda el GeoJSON Point en
-        # <campo>_loc, luego el índice 2dsphere va sobre <campo>_loc, mientras
-        # que _location_var debe guardar el nombre del campo base.
+        
 
 
 class ModelCursor:
