@@ -205,8 +205,10 @@ class Model:
         """
         Elimina el modelo de la base de datos
         """
-        #TODO
-        pass
+        # Comprobamos si el objeto tiene un '_id' guardado en sus datos
+        if '_id' in self._data:
+            # Le decimos a MongoDB: "Borra un documento que coincida con este _id"
+            self._db.delete_one({'_id': self._data['_id']})
     
     @classmethod
     def find(cls, filter: dict[str, str | dict]) -> Any:
