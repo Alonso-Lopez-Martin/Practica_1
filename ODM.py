@@ -106,16 +106,21 @@ class Model:
                 diccionario con los valores de las atributos del modelo
         """
         self._data: dict[str, str | dict | list] = {}
-        #TODO
-        # Realizar las comprabociones y gestiones necesarias
-        # antes de la asignacion.
 
-        # Asigna todos los valores en kwargs a las atributos con 
-        # nombre las claves en kwargs
-        # Utilizamos el atributo data para guardar los variables 
-        # almacenadas en la base de datos en una solo atributo
-        # Encapsular los datos en una sola variable facilita la 
-        # gestion en metodos como save.
+        # Preparamos una lista vacía para apuntar qué cosas modificaremos en el futuro
+        self._modified_vars = set()
+        
+        # 1. Comprobar que no intentan meter variables inventadas
+        for clave in kwargs:
+            if clave not in self._required_vars and clave not in self._admissible_vars:
+                raise ValueError(f"El atributo '{clave}' no está admitido en este modelo.")
+                
+        # 2. Comprobar que no se han olvidado de ninguna variable obligatoria
+        for requerida in self._required_vars:
+            if requerida not in kwargs:
+                raise ValueError(f"Falta el atributo obligatorio: '{requerida}'")
+
+        # Si pasa los controles, guardamos los datos
         self._data.update(kwargs)
 
     def __setattr__(self, name: str, value: str | dict) -> None:
@@ -126,11 +131,15 @@ class Model:
         if name in self._internal_vars:
             super().__setattr__(name, value)
             return
-        #TODO
-        # Realizar las comprabociones y gestiones necesarias
-        # antes de la asignacion.
 
-        # Asigna el valor value a la variable name
+       # 1. Comprobar si la variable que intentan modificar/añadir es válida en tu YAML
+        if name not in self._required_vars and name not in self._admissible_vars:
+            raise ValueError(f"El atributo '{name}' no es válido para este modelo.")
+            
+        # 2. Apuntar en nuestra libreta que esta variable ha sido modificada para el save(
+        self._modified_vars.add(name)
+
+        # Guardamos el nuevo valor
         self._data[name] = value
 
     def __getattr__(self, name: str) -> Any:
@@ -153,8 +162,44 @@ class Model:
         actualiza el documento existente con los nuevos valores del
         modelo.
         """
-        #TODO
-        pass #No olvidar eliminar esta linea una vez implementado
+        # 1. GESTIÓN DE LA GEOLOCALIZACIÓN
+        # Comprobamos si este modelo usa localizaciones y si el usuario ha metido la dirección
+        if self._location_var and self._location_var in self._data:
+            # Si es un documento nuevo (no tiene _id) o si la dirección acaba de ser modificada
+            if '_id' not in self._data or self._location_var in self._modified_vars:
+                # Llamamos a la función para obtener el punto
+                punto = getLocationPoint(self._data[self._location_var])
+                
+                # Lo guardamos en el campo <campo>_loc (ej: direccion_loc)
+                nombre_campo_loc = f"{self._location_var}_loc"
+                self._data[nombre_campo_loc] = punto
+                
+                # Apuntamos que este campo nuevo también se va a guardar
+                self._modified_vars.add(nombre_campo_loc)
+
+        # 2. GUARDAR EN LA BASE DE DATOS
+        if '_id' not in self._data:
+            # INSERCIÓN: Es nuevo porque no tiene _id
+            resultado = self._db.insert_one(self._data)
+            # MongoDB le genera un _id y se lo guardamos a nuestro objeto
+            self._data['_id'] = resultado.inserted_id
+            
+        else:
+            # ACTUALIZACIÓN: Ya existe, actualizamos solo lo modificado
+            if self._modified_vars:
+                datos_a_actualizar = {}
+                for var in self._modified_vars:
+                    datos_a_actualizar[var] = self._data[var]
+                
+                # Buscamos por su _id y modificamos ($set) solo esos campos
+                self._db.update_one(
+                    {'_id': self._data['_id']},
+                    {'$set': datos_a_actualizar}
+                )
+
+        # 3. LIMPIEZA
+        # Vaciamos la libreta de modificaciones porque ya está todo al día
+        self._modified_vars.clear()
 
     def delete(self) -> None:
         """
@@ -243,6 +288,12 @@ class Model:
         cls._db = db_collection
         cls._required_vars = required_vars
         cls._admissible_vars = admissible_vars
+
+        elif tipo == 'geosphere':
+                # Índice geoespacial
+                cls._db.create_index([(f"{campo}_loc", pymongo.GEOSPHERE)])
+                # ¡ESTA LÍNEA ES LA QUE BUSCA EL TEST!
+                cls._location_var = campo
         # TODO
         # Recorrer indexes y crear cada índice segun su tipo: 'unique', 'asc'
         # y 'geosphere'. Comparar el tipo por igualdad, no con el operador 'in'.

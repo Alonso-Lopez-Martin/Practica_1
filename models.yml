@@ -38,8 +38,8 @@ Artista:
     - ano_ini_act
   unique_indexes:
     - nombre
-  regular_indexes: null
-  location_index: null
+  regular_indexes: []
+  location_index: []
 
 Evento:
   required_vars:
@@ -49,12 +49,12 @@ Evento:
     - horario
     - precio
     - n_entradas_vend
-  admissible_vars: null
+  admissible_vars: []
   unique_indexes:
     - titulo
     - recinto
-  regular_indexes: null
-  location_index: null
+  regular_indexes: []
+  location_index: []
 
 Asistente:
   required_vars:
@@ -68,7 +68,7 @@ Asistente:
   unique_indexes:
     - nombre
     - correo_electronico
-  regular_indexes: null
+  regular_indexes: []
   location_index: direccion
 
 
