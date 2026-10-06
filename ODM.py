@@ -35,19 +35,18 @@ def getLocationPoint(address: str) -> Point:
         intentos += 1
         try:
             time.sleep(1)
-            #TODO
-            # Es necesario proporcionar un user_agent para utilizar la API
-            # Utilizar un nombre aleatorio para el user_agent
-            location = Nominatim(user_agent="Mi-Nombre-Aleatorio").geocode(address)
+            location = Nominatim(user_agent="alons-practica-1").geocode(address)
         except GeocoderTimedOut:
             # Puede lanzar una excepcion si se supera el tiempo de espera
             # Volver a intentarlo
             continue
-    #TODO
-    # Devolver un GeoJSON de tipo punto con la latitud y longitud almacenadas.
-    # Si no se consiguieron coordenadas, lanzar ValueError: la funcion no puede
-    # devolver un punto inventado ni None silenciosamente. Es lo que espera la
-    # prueba test_get_location_point_timeout_failure.
+
+    #Si después de los 5 intentos seguimos sin localización, lanzamos el error
+    if location is None:
+        raise ValueError("No se pudieron obtener coordenadas")
+        
+    #Devolvemos el punto (Importante: primero va la longitud y después la latitud)
+    return Point((location.longitude, location.latitude))
 
 class Model:
     """ 
@@ -140,7 +139,7 @@ class Model:
         if name not in self._required_vars and name not in self._admissible_vars:
             raise ValueError(f"El atributo '{name}' no es válido para este modelo.")
             
-        # 2. Apuntar en nuestra libreta que esta variable ha sido modificada para el save(
+        # 2. Apuntar que esta variable ha sido modificada para el save()
         self._modified_vars.add(name)
 
         # Guardamos el nuevo valor
@@ -183,13 +182,13 @@ class Model:
 
         # 2. GUARDAR EN LA BASE DE DATOS
         if '_id' not in self._data:
-            # INSERCIÓN: Es nuevo porque no tiene _id
+            # Insertamos el documento
             resultado = self._db.insert_one(self._data)
             # MongoDB le genera un _id y se lo guardamos a nuestro objeto
             self._data['_id'] = resultado.inserted_id
             
         else:
-            # ACTUALIZACIÓN: Ya existe, actualizamos solo lo modificado
+            #Si ya existe, actualizamos solo lo modificado
             if self._modified_vars:
                 datos_a_actualizar = {}
                 for var in self._modified_vars:
@@ -202,7 +201,7 @@ class Model:
                 )
 
         # 3. LIMPIEZA
-        # Vaciamos la libreta de modificaciones porque ya está todo al día
+        # Vaciamos la libreta de modificaciones porque ya está todo actualizado
         self._modified_vars.clear()
 
     def delete(self) -> None:
@@ -211,7 +210,7 @@ class Model:
         """
         # Comprobamos si el objeto tiene un '_id' guardado en sus datos
         if '_id' in self._data:
-            # Le decimos a MongoDB: "Borra un documento que coincida con este _id"
+            # Borramos el documento con ese id
             self._db.delete_one({'_id': self._data['_id']})
     
     @classmethod
@@ -305,19 +304,14 @@ class Model:
         # 2. Recorremos el diccionario de índices que hemos construido antes en initApp
         for campo, tipo in indexes.items():
             if tipo == 'unique':
-                # Índice único: asegura que no se repitan valores (ej: el nombre del recinto)[cite: 8]
                 cls._db.create_index(campo, unique=True)
                 
             elif tipo == 'asc':
-                # Índice normal ascendente para acelerar búsquedas[cite: 8]
                 cls._db.create_index([(campo, pymongo.ASCENDING)])
                 
             elif tipo == 'geosphere':
-                # Índice geoespacial: se crea sobre el campo terminado en _loc[cite: 9]
                 cls._db.create_index([(f"{campo}_loc", pymongo.GEOSPHERE)])
                 
-                # ¡ESTA ES LA LÍNEA QUE ARREGLA TU ERROR! 
-                # Le decimos a la clase cuál es el campo de dirección original
                 cls._location_var = campo
         
 
@@ -366,10 +360,10 @@ class ModelCursor:
         """
         while self.cursor.alive:
             try:
-                # Obtenemos el siguiente diccionario crudo con 'next'
+                # Obtenemos el siguiente diccionario
                 documento_crudo = next(self.cursor)
                 
-                # Lo convertimos en un objeto de nuestro modelo y lo "entregamos" con 'yield'
+                # Lo convertimos en un objeto de nuestro modelo
                 yield self.model(**documento_crudo)
             except StopIteration:
                 # Si se acaban los documentos de golpe, salimos del bucle sin fallar
