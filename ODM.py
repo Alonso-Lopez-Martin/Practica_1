@@ -112,6 +112,10 @@ class Model:
         
         # 1. Comprobar que no intentan meter variables inventadas
         for clave in kwargs:
+            #Debe pasar siempre el id
+            if clave == '_id':
+                continue
+
             if clave not in self._required_vars and clave not in self._admissible_vars:
                 raise ValueError(f"El atributo '{clave}' no está admitido en este modelo.")
                 
@@ -226,9 +230,11 @@ class Model:
             ModelCursor
                 cursor de modelos
         """ 
-        #TODO
-        # cls es el puntero a la clase
-        pass #No olvidar eliminar esta linea una vez implementado
+        # 1. Hacemos la consulta a MongoDB usando el filtro
+        cursor_pymongo = cls._db.find(filter)
+        
+        # 2. Devolvemos nuestro cursor personalizado, pasándole la clase actual (cls) y los resultados
+        return ModelCursor(cls, cursor_pymongo)
 
     @classmethod
     def aggregate(cls, pipeline: list[dict]) -> pymongo.command_cursor.CommandCursor:
@@ -358,8 +364,16 @@ class ModelCursor:
         Utilizar la funcion next para obtener el siguiente documento del cursor
         Utilizar alive para comprobar si existen mas documentos.
         """
-        #TODO
-        pass #No olvidar eliminar esta linea una vez implementado
+        while self.cursor.alive:
+            try:
+                # Obtenemos el siguiente diccionario crudo con 'next'
+                documento_crudo = next(self.cursor)
+                
+                # Lo convertimos en un objeto de nuestro modelo y lo "entregamos" con 'yield'
+                yield self.model(**documento_crudo)
+            except StopIteration:
+                # Si se acaban los documentos de golpe, salimos del bucle sin fallar
+                break
 
 
 def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://localhost:27017/", db_name="abd", scope=globals()) -> None:
