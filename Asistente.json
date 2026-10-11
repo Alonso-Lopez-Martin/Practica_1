@@ -1,0 +1,41 @@
+[
+    {
+        "_id": {
+            "$oid": "6acb81f0bc90b021b671a3ef"
+        },
+        "nombre": "Alejandro Soria",
+        "correo_electronico": "alex@gmail.com",
+        "fecha_alta": "2024-01-15",
+        "direccion": "Calle Gran Vía 12, Madrid",
+        "pref_genero": [
+            "Rock",
+            "Pop"
+        ],
+        "direccion_loc": {
+            "type": "Point",
+            "coordinates": [
+                -3.870777,
+                40.469241
+            ]
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6acb81f2bc90b021b671a3f0"
+        },
+        "nombre": "Alonso López",
+        "correo_electronico": "alonso@gmail.com",
+        "fecha_alta": "2024-02-10",
+        "direccion": "Calle Alcala 50, Madrid",
+        "pref_genero": [
+            "Rumba"
+        ],
+        "direccion_loc": {
+            "type": "Point",
+            "coordinates": [
+                -3.700432,
+                40.417538
+            ]
+        }
+    }
+]

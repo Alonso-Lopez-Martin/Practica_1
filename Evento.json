@@ -1,0 +1,33 @@
+[
+    {
+        "_id": {
+            "$oid": "6acb81efbc90b021b671a3ed"
+        },
+        "titulo": "Estopa Gira 25 Aniversario",
+        "artistas": [
+            "Estopa"
+        ],
+        "recinto": "WiZink Center",
+        "horario": "2026-11-20T21:00:00",
+        "precio": {
+            "pista": 45.0,
+            "grada": 55.0
+        },
+        "n_entradas_vend": 15000
+    },
+    {
+        "_id": {
+            "$oid": "6acb81efbc90b021b671a3ee"
+        },
+        "titulo": "Rosalía Motomami Tour",
+        "artistas": [
+            "Rosalía"
+        ],
+        "recinto": "Sant Jordi Club",
+        "horario": "2026-12-05T20:30:00",
+        "precio": {
+            "pista": 60.0
+        },
+        "n_entradas_vend": 4500
+    }
+]

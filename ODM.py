@@ -125,6 +125,8 @@ class Model:
 
         # Si pasa los controles, guardamos los datos
         self._data.update(kwargs)
+        for k, v in kwargs.items():
+            super().__setattr__(k, v)
 
     def __setattr__(self, name: str, value: str | dict) -> None:
         """ Sobreescribe el metodo de asignacion de valores a los 
@@ -144,6 +146,7 @@ class Model:
 
         # Guardamos el nuevo valor
         self._data[name] = value
+        super().__setattr__(name, value)
 
     def __getattr__(self, name: str) -> Any:
         """ Sobreescribe el metodo de acceso a atributos del objeto
@@ -176,6 +179,7 @@ class Model:
                 # Lo guardamos en el campo <campo>_loc (ej: direccion_loc)
                 nombre_campo_loc = f"{self._location_var}_loc"
                 self._data[nombre_campo_loc] = punto
+                super().__setattr__(nombre_campo_loc, punto)
                 
                 # Apuntamos que este campo nuevo también se va a guardar
                 self._modified_vars.add(nombre_campo_loc)
@@ -431,35 +435,36 @@ def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://local
         )
 
 if __name__ == '__main__':
-    
-    # Inicializar base de datos y modelos con initApp
-    #TODO
+    # 1. Inicializar base de datos y modelos con initApp
     initApp()
 
-    #Ejemplo
-    m = MiModelo(nombre="Pablo", apellido="Ramos", edad=18)
-    m.save()
-    m.nombre="Pedro"
-    print(m.nombre)
+    # 2. Crear modelo
+    recinto = Recinto(nombre="WiZink Center", direccion="Avenida Felipe II, Madrid", aforo=17000)
 
-    # Hacer pruebas para comprobar que funciona correctamente el modelo
-    #TODO
-    # Crear modelo
+    # 3. Asignar nuevo valor a variable admitida del objeto
+    recinto.servicios = ["Parking", "Accesibilidad PMR"]
 
-    # Asignar nuevo valor a variable admitida del objeto 
+    # 4. Asignar nuevo valor a variable no admitida del objeto (comprobación de error)
+    try:
+        recinto.variable_inventada = "Error"
+    except ValueError as e:
+        print(f"Prueba de validación de atributo no admitido correcta: {e}")
 
-    # Asignar nuevo valor a variable no admitida del objeto 
+    # 5. Guardar
+    recinto.save()
+    print(f"Recinto creado y guardado en Mongo con ID: {recinto._id}")
 
-    # Guardar
+    # 6. Asignar nuevo valor a variable admitida del objeto y Guardar
+    recinto.aforo = 18000
+    recinto.save()
+    print("Aforo actualizado en Mongo correctamente.")
 
-    # Asignar nuevo valor a variable admitida del objeto
+    # 7. Buscar nuevo documento con find y Obtener primer documento
+    cursor = Recinto.find({"nombre": "WiZink Center"})
+    primer_recinto = next(iter(cursor))
+    print(f"Recinto recuperado de la BBDD: {primer_recinto.nombre}, Aforo actual: {primer_recinto.aforo}")
 
-    # Guardar
-
-    # Buscar nuevo documento con find
-
-    # Obtener primer documento
-
-    # Modificar valor de variable admitida
-
-    # Guardar
+    # 8. Modificar valor de variable admitida y Guardar
+    primer_recinto.aforo = 17500
+    primer_recinto.save()
+    print("Modificación realizada desde el objeto recuperado y guardada en MongoDB.")

@@ -39,7 +39,6 @@ Artista:
   unique_indexes:
     - nombre
   regular_indexes: []
-  location_index: []
 
 Evento:
   required_vars:
@@ -50,11 +49,10 @@ Evento:
     - precio
     - n_entradas_vend
   admissible_vars: []
-  unique_indexes:
-    - titulo
+  unique_indexes: []
+  regular_indexes:
     - recinto
-  regular_indexes: []
-  location_index: []
+    - horario
 
 Asistente:
   required_vars:
@@ -66,9 +64,6 @@ Asistente:
     - pref_genero
     - direccion_loc
   unique_indexes:
-    - nombre
     - correo_electronico
   regular_indexes: []
   location_index: direccion
-
-

@@ -1,0 +1,26 @@
+[
+    {
+        "_id": {
+            "$oid": "6acb81efbc90b021b671a3eb"
+        },
+        "nombre": "Estopa",
+        "generos": [
+            "Rumba",
+            "Rock"
+        ],
+        "pais": "España",
+        "ano_ini_act": 1999
+    },
+    {
+        "_id": {
+            "$oid": "6acb81efbc90b021b671a3ec"
+        },
+        "nombre": "Rosalía",
+        "generos": [
+            "Flamenco",
+            "Pop"
+        ],
+        "pais": "España",
+        "ano_ini_act": 2017
+    }
+]

@@ -1,0 +1,39 @@
+[
+    {
+        "_id": {
+            "$oid": "6acb81edbc90b021b671a3e9"
+        },
+        "nombre": "WiZink Center",
+        "direccion": "Avenida Felipe II, Madrid",
+        "aforo": 17453,
+        "servicios": [
+            "Parking",
+            "Bar"
+        ],
+        "direccion_loc": {
+            "type": "Point",
+            "coordinates": [
+                -3.67616,
+                40.424171
+            ]
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6acb81efbc90b021b671a3ea"
+        },
+        "nombre": "Sant Jordi Club",
+        "direccion": "Passeig Olímpic 5, Barcelona",
+        "aforo": 4600,
+        "servicios": [
+            "Accesibilidad PMR"
+        ],
+        "direccion_loc": {
+            "type": "Point",
+            "coordinates": [
+                2.152513,
+                41.362318
+            ]
+        }
+    }
+]
