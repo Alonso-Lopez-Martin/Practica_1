@@ -2,20 +2,18 @@ from pymongo import MongoClient
 import ODM
 
 def poblar():
-    # 1. Limpiar la base de datos previa para evitar duplicados de clave única
     client = MongoClient("mongodb://localhost:27017/")
     client.drop_database("abd")
 
-    # 2. Inicializar el ODM
     ODM.initApp(definitions_path="./models.yml", db_name="abd", scope=ODM.__dict__)
 
-    print("Insertando Recintos...")
     r1 = ODM.Recinto(
         nombre="WiZink Center", 
         direccion="Avenida Felipe II, Madrid", 
         aforo=17453, 
         servicios=["Parking", "Bar"]
     )
+
     r1.save()
 
     r2 = ODM.Recinto(
@@ -26,7 +24,6 @@ def poblar():
     )
     r2.save()
 
-    print("Insertando Artistas...")
     a1 = ODM.Artista(
         nombre="Estopa", 
         generos=["Rumba", "Rock"], 
@@ -43,7 +40,6 @@ def poblar():
     )
     a2.save()
 
-    print("Insertando Eventos...")
     e1 = ODM.Evento(
         titulo="Estopa Gira 25 Aniversario", 
         artistas=["Estopa"], 
@@ -64,7 +60,6 @@ def poblar():
     )
     e2.save()
 
-    print("Insertando Asistentes...")
     u1 = ODM.Asistente(
         nombre="Alejandro Soria", 
         correo_electronico="alex@gmail.com", 
@@ -82,8 +77,6 @@ def poblar():
         pref_genero=["Rumba"]
     )
     u2.save()
-
-    print("¡Base de datos poblada con éxito!")
 
 if __name__ == '__main__':
     poblar()
